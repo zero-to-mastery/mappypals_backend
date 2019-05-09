@@ -46,22 +46,21 @@ router.post('/register', (req, res) => {
         }
         else {
             async.waterfall([
-                async (done) => {
-                    const payload = {
-                        name,
-                        email
-                    }
+                (done) => {
+                    crypto.randomBytes(20, (err, code) => {
+                        let token = code.toString('hex');
+                        done(err, token);
+                    });
+                },
 
-                    const secret = 'mysuperstrongsecret' //For dev purposes only, in prod will likely be stored in another server and will be random.
-
-                    const jwtToken = jwt.encode(payload, secret);
-                    
+                async (token, done) => {                    
                     const newUser = new User({
                         name,
                         lastname,
                         email,
                         password,
-                        jwtToken
+                        token,
+                        tokenExp : Date.now() + 3600000
                     });
 
                     let testAccount = await nodemailer.createTestAccount()
@@ -82,7 +81,7 @@ router.post('/register', (req, res) => {
                         subject: 'Confirm Registration',
                         text: 'You are receiving this because you(or someone else) have requested to register to Mappypals.\n\n' +
                             'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                            'http://localhost:3000/users/login/' + jwtToken + '\n\n' +
+                            'http://localhost:3000/users/login/' + token + '\n\n' +
                             'If you did not request this, please ignore this email and your account will not be created.\n'
                     });
 
@@ -145,6 +144,37 @@ router.get('/logout', (req, res) => {
     req.logout();
     res.send("You have logged out");
 });
+
+//Register Verify Routes
+router.get('/login/:token', (req, res) => {
+    User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() } }, (err, user) => {
+        if (!user) {
+            res.send('Token is invalid or expired.')
+        }
+        res.send('Your account is confirmed.');
+    });
+});
+
+//TODO:THIS
+router.post('/login/:token', (req, res) => {
+
+    async.waterfall([
+        (done) => {
+
+            User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() } }, (err, user) => {
+                if (!user) {
+                    res.send('Token is invalid or expired.')
+                }
+                else{
+                    user.active = true;
+                    user.token = undefined;
+                    res.status(200).json({ redirect: true })
+                }
+            });
+        }
+    ]);
+});
+
 
 //Forgot Password Routes
 router.get('/reset', (req, res) => {
@@ -222,7 +252,7 @@ router.post("/reset", (req, res, next) => {
 
 router.get('/resetpassword/:token', (req, res) => {
 
-    User.findOne({ resetPassToken: req.params.token, resetPassExp: { $gt: Date.now() }}, (err, user) => {
+    User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() }}, (err, user) => {
         if(!user) {
             res.send('Password Reset Token is invalid or expired.')
         }
@@ -236,7 +266,7 @@ router.post('/resetpassword/:token', (req, res) => {
         (done) => {
             const { password, checkPassword } = req.body;
 
-            User.findOne({ resetPassToken: req.params.token, resetPassExp: { $gt: Date.now() }}, (err, user) => {
+            User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() }}, (err, user) => {
                 if(!user) {
                     res.send('Password Reset Token is invalid or expired.')
                 }
