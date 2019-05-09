@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const async = require('async');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const jwt = require('jwt-simple');
 
 //Google Imports
 /* const { google } = require("googleapis");
@@ -29,7 +30,7 @@ router.get('/register', (req, res) => {
 })
 
 router.post('/register', (req, res) => {
-    const { name, lastname, email, password, confirmPassword } = req.body;
+    const { name, lastname, email, password, confirmPassword } = req.query;
 
     if (!name || !lastname || !email  || !password || !confirmPassword) {
         console.log("Error: Enter all fields");
@@ -38,40 +39,76 @@ router.post('/register', (req, res) => {
     if( password !== confirmPassword ) {
         console.log("Error: Passwords do not match")
     }
-
-    User.findOne ({ email }).then(user => {
+    
+    User.findOne({ email }).then(user => {
         if(user) {
             console.log("User already registered");
         }
         else {
-            const newUser = new User({
-                name,
-                lastname,
-                email,
-                password
-            });
+            async.waterfall([
+                async (done) => {
+                    const payload = {
+                        name,
+                        email
+                    }
 
-            bcrypt.genSalt(5, (err, salt) => {
-                bcrypt.hash(newUser.password, salt, (err, hash) => {
-                    if(err) {
-                        console.log(`Bcrypt error: ${err}`);
-                    }
-                    else {
-                        newUser.password = hash;
-                        newUser.save()
-                            .then(user => {
-                                console.log(`Successfully registered ${user}`);
-                                res.status(200).json({ redirect: true})
-                            })
-                            .catch(err => console.log(err));
-                    }
-                });
-            });
-        }
-    })
-/*   if(redirect) {
-        res.json(200, { redirect: true })
-    }*/
+                    const secret = 'mysuperstrongsecret' //For dev purposes only, in prod will likely be stored in another server and will be random.
+
+                    const jwtToken = jwt.encode(payload, secret);
+                    
+                    const newUser = new User({
+                        name,
+                        lastname,
+                        email,
+                        password,
+                        jwtToken
+                    });
+
+                    let testAccount = await nodemailer.createTestAccount()
+
+                    let transporter = await nodemailer.createTransport({
+                        host: "smtp.ethereal.email",
+                        port: 587,
+                        secure: false, // true for 465, false for other ports
+                        auth: {
+                            user: testAccount.user, // generated ethereal user
+                            pass: testAccount.pass // generated ethereal password
+                        }
+                    })
+
+                    let info = await transporter.sendMail({
+                        from: 'mappypals@gmail.com',
+                        to: newUser.email,
+                        subject: 'Confirm Registration',
+                        text: 'You are receiving this because you(or someone else) have requested to register to Mappypals.\n\n' +
+                            'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                            'http://localhost:3000/users/login/' + jwtToken + '\n\n' +
+                            'If you did not request this, please ignore this email and your account will not be created.\n'
+                    });
+
+                    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+                    res.status(200).json({ message: `Click on the link below`, link: nodemailer.getTestMessageUrl(info) })
+
+                    bcrypt.genSalt(10, (err, salt) => {
+                        bcrypt.hash(newUser.password, salt, (err, hash) => {
+                            if (err) {
+                                console.log(`Bcrypt error: ${err}`);
+                            }
+                            else {
+                                newUser.password = hash;
+                                newUser.save()
+                                    .then(user => {
+                                        console.log(`Successfully registered ${user}`);
+                                        res.status(200).json({ redirect: true })
+                                    })
+                                    .catch(err => console.log(err));
+                            }
+                        });
+                    });
+                }
+            ])
+        
+    }});
 });
 
 
@@ -224,6 +261,6 @@ router.post('/resetpassword/:token', (req, res) => {
             });
         }
     ]);
-})
+});
 
 module.exports = router;

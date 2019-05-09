@@ -21,6 +21,9 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    jwtToken: {
+        type: String
+    },
     resetPassToken: {
         type: String
     },
@@ -30,6 +33,10 @@ const UserSchema = new mongoose.Schema({
     lastLogin: {
         type: Date,
         default: Date.now
+    },
+    active: {
+        type: Boolean,
+        default: false
     }
 });
 
