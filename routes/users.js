@@ -29,7 +29,7 @@ router.get('/register', (req, res) => {
 })
 
 router.post('/register', (req, res) => {
-    const { name, lastname, email, password, confirmPassword } = req.query;
+    const { name, lastname, email, password, confirmPassword } = req.body;
 
     if (!name || !lastname || !email  || !password || !confirmPassword) {
         console.log("Error: Enter all fields");
@@ -97,7 +97,6 @@ router.post('/register', (req, res) => {
                                 newUser.save()
                                     .then(user => {
                                         console.log(`Successfully registered ${user}`);
-                                        res.status(200).json({ redirect: true })
                                     })
                                     .catch(err => console.log(err));
                             }
@@ -164,6 +163,7 @@ router.post('/login/:token', (req, res) => {
             user.active = true;
             user.token = undefined;
             user.save();
+            console.log("Account confirmed");
             res.status(200).json({ redirect: true })
         }
     });
@@ -191,9 +191,9 @@ router.post("/reset", (req, res, next) => {
                 if(!user) {
                     console.log("No user of associated to this email");
                 }
-                user.resetPassToken = token;
+                user.token = token;
                 // 1 Hour valid
-                user.resetPassExp = Date.now() + 3600000
+                user.tokenExp = Date.now() + 3600000
                 user.save(function(err) {
                     done(err, token, user);
                 });
@@ -255,9 +255,6 @@ router.get('/resetpassword/:token', (req, res) => {
 });
 
 router.post('/resetpassword/:token', (req, res) => {
-
-    async.waterfall([
-        (done) => {
             const { password, checkPassword } = req.body;
 
             User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() }}, (err, user) => {
@@ -283,8 +280,6 @@ router.post('/resetpassword/:token', (req, res) => {
                     });
                 }
             });
-        }
-    ]);
 });
 
 module.exports = router;
