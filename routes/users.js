@@ -6,7 +6,6 @@ const bcrypt = require('bcryptjs');
 const async = require('async');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-const jwt = require('jwt-simple');
 
 //Google Imports
 /* const { google } = require("googleapis");
@@ -157,22 +156,17 @@ router.get('/login/:token', (req, res) => {
 
 //TODO:THIS
 router.post('/login/:token', (req, res) => {
-
-    async.waterfall([
-        (done) => {
-
-            User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() } }, (err, user) => {
-                if (!user) {
-                    res.send('Token is invalid or expired.')
-                }
-                else{
-                    user.active = true;
-                    user.token = undefined;
-                    res.status(200).json({ redirect: true })
-                }
-            });
+    User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() } }, (err, user) => {
+        if (!user) {
+            res.send('Token is invalid or expired.')
         }
-    ]);
+        else{
+            user.active = true;
+            user.token = undefined;
+            user.save();
+            res.status(200).json({ redirect: true })
+        }
+    });
 });
 
 
