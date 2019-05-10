@@ -80,7 +80,7 @@ router.post('/register', (req, res) => {
                         subject: 'Confirm Registration',
                         text: 'You are receiving this because you(or someone else) have requested to register to Mappypals.\n\n' +
                             'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                            'http://localhost:3000/users/login/' + token + '\n\n' +
+                            'http://localhost:3000/login/' + token + '\n\n' +
                             'If you did not request this, please ignore this email and your account will not be created.\n'
                     });
 
