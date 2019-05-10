@@ -120,6 +120,9 @@ router.post('/login', (req, res) => {
         else if (!user) {
             res.status(401).json({ error: 'Incorrect email or password' })
         }
+        else if(!user.active) {
+            res.status(401).json({ error: 'Please confirm your account before'})
+        }
         else {
             bcrypt.compare(password, user.password, (err, isMatch) => {
                 if (err) {
