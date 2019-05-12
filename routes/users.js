@@ -38,40 +38,74 @@ router.post('/register', (req, res) => {
     if( password !== confirmPassword ) {
         console.log("Error: Passwords do not match")
     }
-
-    User.findOne ({ email }).then(user => {
+    
+    User.findOne({ email }).then(user => {
         if(user) {
             console.log("User already registered");
         }
         else {
-            const newUser = new User({
-                name,
-                lastname,
-                email,
-                password
-            });
+            async.waterfall([
+                (done) => {
+                    crypto.randomBytes(20, (err, code) => {
+                        let token = code.toString('hex');
+                        done(err, token);
+                    });
+                },
 
-            bcrypt.genSalt(5, (err, salt) => {
-                bcrypt.hash(newUser.password, salt, (err, hash) => {
-                    if(err) {
-                        console.log(`Bcrypt error: ${err}`);
-                    }
-                    else {
-                        newUser.password = hash;
-                        newUser.save()
-                            .then(user => {
-                                console.log(`Successfully registered ${user}`);
-                                res.status(200).json({ redirect: true})
-                            })
-                            .catch(err => console.log(err));
-                    }
-                });
-            });
-        }
-    })
-/*   if(redirect) {
-        res.json(200, { redirect: true })
-    }*/
+                async (token, done) => {                    
+                    const newUser = new User({
+                        name,
+                        lastname,
+                        email,
+                        password,
+                        token,
+                        tokenExp : Date.now() + 3600000
+                    });
+
+                    let testAccount = await nodemailer.createTestAccount()
+
+                    let transporter = await nodemailer.createTransport({
+                        host: "smtp.ethereal.email",
+                        port: 587,
+                        secure: false, // true for 465, false for other ports
+                        auth: {
+                            user: testAccount.user, // generated ethereal user
+                            pass: testAccount.pass // generated ethereal password
+                        }
+                    })
+
+                    let info = await transporter.sendMail({
+                        from: 'mappypals@gmail.com',
+                        to: newUser.email,
+                        subject: 'Confirm Registration',
+                        text: 'You are receiving this because you(or someone else) have requested to register to Mappypals.\n\n' +
+                            'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+                            'http://localhost:3000/login/' + token + '\n\n' +
+                            'If you did not request this, please ignore this email and your account will not be created.\n'
+                    });
+
+                    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+                    res.status(200).json({ message: `Click on the link below`, link: nodemailer.getTestMessageUrl(info) })
+
+                    bcrypt.genSalt(10, (err, salt) => {
+                        bcrypt.hash(newUser.password, salt, (err, hash) => {
+                            if (err) {
+                                console.log(`Bcrypt error: ${err}`);
+                            }
+                            else {
+                                newUser.password = hash;
+                                newUser.save()
+                                    .then(user => {
+                                        console.log(`Successfully registered ${user}`);
+                                    })
+                                    .catch(err => console.log(err));
+                            }
+                        });
+                    });
+                }
+            ])
+        
+    }});
 });
 
 
@@ -85,6 +119,9 @@ router.post('/login', (req, res) => {
         }
         else if (!user) {
             res.status(401).json({ error: 'Incorrect email or password' })
+        }
+        else if(!user.active) {
+            res.status(401).json({ error: 'Please confirm your account before'})
         }
         else {
             bcrypt.compare(password, user.password, (err, isMatch) => {
@@ -109,6 +146,33 @@ router.get('/logout', (req, res) => {
     res.send("You have logged out");
 });
 
+//Register Verify Routes
+router.get('/login/:token', (req, res) => {
+    User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() } }, (err, user) => {
+        if (!user) {
+            res.send('Token is invalid or expired.')
+        }
+        res.send('Your account is confirmed.');
+    });
+});
+
+//TODO:THIS
+router.post('/login/:token', (req, res) => {
+    User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() } }, (err, user) => {
+        if (!user) {
+            res.send('Token is invalid or expired.')
+        }
+        else{
+            user.active = true;
+            user.token = undefined;
+            user.save();
+            console.log("Account confirmed");
+            res.status(200).json({ redirect: true })
+        }
+    });
+});
+
+
 //Forgot Password Routes
 router.get('/reset', (req, res) => {
     res.send("Endpoint reached");
@@ -130,9 +194,9 @@ router.post("/reset", (req, res, next) => {
                 if(!user) {
                     console.log("No user of associated to this email");
                 }
-                user.resetPassToken = token;
+                user.token = token;
                 // 1 Hour valid
-                user.resetPassExp = Date.now() + 3600000
+                user.tokenExp = Date.now() + 3600000
                 user.save(function(err) {
                     done(err, token, user);
                 });
@@ -185,7 +249,7 @@ router.post("/reset", (req, res, next) => {
 
 router.get('/resetpassword/:token', (req, res) => {
 
-    User.findOne({ resetPassToken: req.params.token, resetPassExp: { $gt: Date.now() }}, (err, user) => {
+    User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() }}, (err, user) => {
         if(!user) {
             res.send('Password Reset Token is invalid or expired.')
         }
@@ -194,12 +258,9 @@ router.get('/resetpassword/:token', (req, res) => {
 });
 
 router.post('/resetpassword/:token', (req, res) => {
-
-    async.waterfall([
-        (done) => {
             const { password, checkPassword } = req.body;
 
-            User.findOne({ resetPassToken: req.params.token, resetPassExp: { $gt: Date.now() }}, (err, user) => {
+            User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() }}, (err, user) => {
                 if(!user) {
                     res.send('Password Reset Token is invalid or expired.')
                 }
@@ -222,8 +283,6 @@ router.post('/resetpassword/:token', (req, res) => {
                     });
                 }
             });
-        }
-    ]);
-})
+});
 
 module.exports = router;
