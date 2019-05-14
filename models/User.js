@@ -21,15 +21,19 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    resetPassToken: {
+    token: {
         type: String
     },
-    resetPassExp: {
+    tokenExp: {
         type: Date
     },
     lastLogin: {
         type: Date,
         default: Date.now
+    },
+    active: {
+        type: Boolean,
+        default: false
     }
 });
 
