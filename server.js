@@ -1,15 +1,15 @@
 //Should be server.js but since we are not allowed to delete other people's code, a new file.
-
 const express = require('express');
 const mongoose = require('mongoose');
 // const passport = require('passport');
 const cors = require('cors');
 // const session = require('express-session');
 const bodyParser = require('body-parser');
-const { isAuthenticated } = require('./config/middleware')
+const dotenv = require('dotenv');
+const { isAuthenticated } = require('./config/middleware');
 
 const app = express();
-
+dotenv.config();
 // CORS
 app.use(cors());
 
@@ -41,9 +41,6 @@ mongoose.connect( db, { useNewUrlParser: true })
 
 app.use('/', index);
 app.use('/users', users);
-app.get('/private', isAuthenticated, (req, res) =>  {
-    return res.status(200).json({ message: 'Private message revealed!' });
-});
 
 // app.use(passport.initialize());
 // app.use(passport.session());
