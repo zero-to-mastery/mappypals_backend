@@ -2,10 +2,11 @@
 
 const express = require('express');
 const mongoose = require('mongoose');
-const passport = require('passport');
+// const passport = require('passport');
 const cors = require('cors');
-const session = require('express-session');
+// const session = require('express-session');
 const bodyParser = require('body-parser');
+const { isAuthenticated } = require('./config/middleware')
 
 const app = express();
 
@@ -17,11 +18,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // Routes
-const index = require('./routes/index.js');
-const users = require('./routes/users.js');
+const index = require('./routes/index');
+const users = require('./routes/users');
 
 // While adding fb or any other auth, make changes to this file
-require('./config/passport')(passport);
+// require('./config/passport')(passport);
 
 // DB config
 const db = require('./config/db').mongoURI;
@@ -30,19 +31,22 @@ mongoose.connect( db, { useNewUrlParser: true })
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.log(err));
 
-app.use(
-    session({
-        secret: 'secret',
-        resave: true,
-        saveUninitialized: true
-    })
-);
+// app.use(
+//     session({
+//         secret: 'secret',
+//         resave: true,
+//         saveUninitialized: true
+//     })
+// );
 
 app.use('/', index);
 app.use('/users', users);
+app.get('/private', isAuthenticated, (req, res) =>  {
+    return res.status(200).json({ message: 'Private message revealed!' });
+});
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 const PORT = process.env.PORT || 3001
 

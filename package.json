@@ -32,6 +32,7 @@
         "express": "^4.16.4",
         "express-session": "^1.16.1",
         "googleapis": "^39.2.0",
+        "jsonwebtoken": "^8.5.1",
         "mongodb": "^3.1.13",
         "mongoose": "^5.5.2",
         "nodemailer": "^6.1.1",
