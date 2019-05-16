@@ -120,6 +120,10 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Something went wrong.', user });
         }
 
+        if (!user.active) {
+            return res.status(401).json({ error: 'Please confirm your account before logging in.' });
+        }
+
         const isEqual = await bcrypt.compare(password, user.password);
 
         if (!isEqual) {
