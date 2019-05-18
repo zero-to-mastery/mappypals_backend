@@ -1,11 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const User = require('../models/User');
-
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const async = require('async');
 const nodemailer = require('nodemailer');
-const crypto = require('crypto');
+const express = require('express');
+const jwt = require('jsonwebtoken');
+
+const router = express.Router();
+const User = require('../models/User');
 
 //Google Imports
 /* const { google } = require("googleapis");
@@ -108,37 +109,41 @@ router.post('/register', (req, res) => {
     }});
 });
 
-
 //Login Routes
-router.post('/login', (req, res) => {
-    const { email, password} = req.body;
-    User.findOne({ email }, function(err, user) {
-        if(err) {
-            console.log(err);
-            res.status(500).json({ error: 'Internal error' })
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    
+    try {
+        const user = await User.findOne({ email });
+        
+        if (!user) {
+            return res.status(401).json({ error: 'Something went wrong.', user });
         }
-        else if (!user) {
-            res.status(401).json({ error: 'Incorrect email or password' })
+
+        if (!user.active) {
+            return res.status(401).json({ error: 'Please confirm your account before logging in.' });
         }
-        else if(!user.active) {
-            res.status(401).json({ error: 'Please confirm your account before'})
+
+        const isEqual = await bcrypt.compare(password, user.password);
+
+        if (!isEqual) {
+            return res.status(401).json({ error: 'Something went wrong.' });
         }
-        else {
-            bcrypt.compare(password, user.password, (err, isMatch) => {
-                if (err) {
-                    console.log(err);
-                    res.status(500).json({ error: 'Internal error' })
-                }
-                if (!isMatch) {
-                    res.status(401).json({ error: 'Incorrect email or password' }) 
-                } else {
-                    user.lastLogin = Date.now()
-                    user.save();
-                    res.status(200).json({ redirect: true })
-                }
-            });
-        }
-    })
+
+        const token = jwt.sign(
+            {
+                name: user.name,
+                lastname: user.lastname,
+                email: user.email,
+                userId: user._id.toString()
+            }, 'somesupersecretsecret',
+            { expiresIn: '1d' }
+        );
+
+        res.status(200).json({ token, userId: user._id.toString() });
+    } catch (err) {
+        return res.status(500).json({ error: err.message })
+    }
 });
 
 router.get('/logout', (req, res) => {
@@ -171,7 +176,6 @@ router.post('/login/:token', (req, res) => {
         }
     });
 });
-
 
 //Forgot Password Routes
 router.get('/reset', (req, res) => {
@@ -246,7 +250,6 @@ router.post("/reset", (req, res, next) => {
 });
 
 //Deal with the reset token
-
 router.get('/resetpassword/:token', (req, res) => {
 
     User.findOne({ token: req.params.token, tokenExp: { $gt: Date.now() }}, (err, user) => {
