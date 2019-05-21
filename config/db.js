@@ -1,3 +1,3 @@
-const dbPass = "mongodb+srv://mappypals:ZozaDZQ7FDKmZZIq@mappypals-hzxcd.mongodb.net/test?retryWrites=true" ;
+const dbPass = process.env.MONGO_URI;
 
 module.exports = { mongoURI: dbPass };
