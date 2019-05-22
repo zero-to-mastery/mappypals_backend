@@ -3,38 +3,38 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
     },
     lastname: {
         type: String,
-        required: true
+        required: true,
     },
     email: {
         type: String,
-        required: true
+        required: true,
     },
     password: {
         type: String,
-        required: true
+        required: true,
     },
     date: {
         type: Date,
-        default: Date.now
+        default: Date.now,
     },
     token: {
-        type: String
+        type: String,
     },
     tokenExp: {
-        type: Date
+        type: Date,
     },
     lastLogin: {
         type: Date,
-        default: Date.now
+        default: Date.now,
     },
     active: {
         type: Boolean,
-        default: false
-    }
+        default: false,
+    },
 });
 
 const User = mongoose.model('User', UserSchema);

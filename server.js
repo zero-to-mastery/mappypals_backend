@@ -1,10 +1,10 @@
-//Should be server.js but since we are not allowed to delete other people's code, a new file.
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const dotenv = require("dotenv");
-const { isAuthenticated } = require("./config/middleware");
+// Should be server.js but since we are not allowed to delete other people's code, a new file.
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+const { isAuthenticated } = require('./config/middleware');
 
 const app = express();
 dotenv.config();
@@ -16,17 +16,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // Routes
-const users = require("./routes/users");
+const users = require('./routes/users');
 
 // DB config
-const db = require("./config/db").mongoURI;
+const db = require('./config/db').mongoURI;
 
 mongoose
-  .connect(db, { useNewUrlParser: true })
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+    .connect(db, { useNewUrlParser: true })
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.log(err));
 
-app.use("/users", users);
+app.use('/users', users);
 
 const PORT = process.env.PORT || 3001;
 
