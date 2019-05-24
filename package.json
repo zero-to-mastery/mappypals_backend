@@ -8,7 +8,7 @@
         "start": "nodemon server.js",
         "postinstall": "npm audit fix",
         "dev:lint": "eslint --fix .",
-        "dev:format": "prettier --write './**/*.js'"
+        "dev:format": "prettier --write \"./**/*.js\""
     },
     "repository": {
         "type": "git",
