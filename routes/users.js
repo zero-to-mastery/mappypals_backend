@@ -7,6 +7,10 @@ const async = require('async');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
+// Load validator
+const validateRegisterInput = require('../validator/register');
+const validateResetPasswordInput = require('../validator/resetPassword');
+
 //Google Imports
 /* const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
@@ -29,16 +33,13 @@ router.get('/register', (req, res) => {
 })
 
 router.post('/register', (req, res) => {
-    const { name, lastname, email, password, confirmPassword } = req.body;
+    const { errors, isValid } = validateRegisterInput(req.body);
 
-    if (!name || !lastname || !email  || !password || !confirmPassword) {
-        console.log("Error: Enter all fields");
-    }
-
-    if( password !== confirmPassword ) {
-        console.log("Error: Passwords do not match")
-    }
-
+  // Check Validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+    
     User.findOne ({ email }).then(user => {
         if(user) {
             console.log("User already registered");
@@ -115,8 +116,9 @@ router.get('/reset', (req, res) => {
 });
 
 router.post("/reset", (req, res, next) => {
+   
     const { email } = req.body;
-
+    
     async.waterfall([
         (done) => {
             crypto.randomBytes(20, (err, code) => {
@@ -194,6 +196,12 @@ router.get('/resetpassword/:token', (req, res) => {
 });
 
 router.post('/resetpassword/:token', (req, res) => {
+    const { errors, isValid } = validateResetPasswordInput(req.body);
+
+  // Check Validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
 
     async.waterfall([
         (done) => {

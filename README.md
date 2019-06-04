@@ -118,6 +118,8 @@ Here are the full lists of feature we plan to implement throughout the lifespan 
 * Contact page
 * About us page
 * Login/Register/Reset Password
+    * Added validator folder and inside, is-empty.js,register.js,resetPassword.js files for routes/user.js signup and reset password client side validations
+    * Added npm Validator package for register and reset password validations
 * User Dashboard
     * Edit details
     * Settings

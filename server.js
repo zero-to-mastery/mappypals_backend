@@ -6,7 +6,6 @@ const passport = require('passport');
 const cors = require('cors');
 const session = require('express-session');
 const bodyParser = require('body-parser');
-
 const app = express();
 
 // CORS
