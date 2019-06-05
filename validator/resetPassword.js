@@ -22,7 +22,6 @@ module.exports = function validateResetPasswordInput(data) {
   if (!Validator.equals(data.password, data.checkPassword)) {
     errors.checkPassword = 'Passwords must match';
   }
-
   return {
     errors,
     isValid: isEmpty(errors)
