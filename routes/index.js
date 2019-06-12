@@ -2,9 +2,6 @@
 
 const express = require('express');
 const router = express.Router();
-
-const crypto = require('crypto');
-const async = require('async');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
 
