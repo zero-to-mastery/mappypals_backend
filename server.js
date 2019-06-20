@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const { isAuthenticated } = require('./config/middleware');
 
 const app = express();
 dotenv.config();
@@ -17,6 +16,7 @@ app.use(bodyParser.json());
 
 // Routes
 const users = require('./routes/users');
+const friends = require('./routes/friends');
 
 // DB config
 const db = require('./config/db').mongoURI;
@@ -27,6 +27,7 @@ mongoose
     .catch(err => console.log(err));
 
 app.use('/users', users);
+app.use('/friends', friends);
 
 const PORT = process.env.PORT || 3001;
 
