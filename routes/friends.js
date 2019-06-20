@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 //  Load controllers
-const emailHelper = require('../../controllers/email');
+const emailHelper = require('../../utils/email');
 
 router.get('/invite', async (req, res) => {
     res.send('Invite endpoint reached');
