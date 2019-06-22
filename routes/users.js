@@ -1,12 +1,13 @@
-const crypto = require('crypto');
-const bcrypt = require('bcryptjs');
-const asyncMod = require('async');
-const nodemailer = require('nodemailer');
-const express = require('express');
-const jwt = require('jsonwebtoken');
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import asyncMod from 'async';
+import nodemailer from 'nodemailer';
+import express from 'express';
+import jwt from 'jsonwebtoken';
+
+import User from '../models/User';
 
 const router = express.Router();
-const User = require('../models/User');
 
 // Register Routes
 router.post('/register', (req, res) => {
@@ -294,4 +295,4 @@ router.post('/resetpassword/:token', (req, res) => {
     );
 });
 
-module.exports = router;
+export default router;
