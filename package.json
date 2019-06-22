@@ -21,6 +21,10 @@
     },
     "homepage": "https://github.com/zerotomastery/mappypals#readme",
     "devDependencies": {
+        "@babel/cli": "^7.4.4",
+        "@babel/core": "^7.4.5",
+        "@babel/node": "^7.4.5",
+        "@babel/preset-env": "^7.4.5",
         "eslint": "^5.16.0",
         "eslint-config-prettier": "^4.3.0",
         "eslint-config-standard": "^12.0.0",
