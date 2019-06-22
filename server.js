@@ -1,4 +1,3 @@
-// Should be server.js but since we are not allowed to delete other people's code, a new file.
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
