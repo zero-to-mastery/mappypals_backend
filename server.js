@@ -1,9 +1,13 @@
 // Should be server.js but since we are not allowed to delete other people's code, a new file.
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import dotenv from 'dotenv';
+
+// Routes
+import users from './routes/users';
+import friends from './routes/friends';
 
 const app = express();
 dotenv.config();
@@ -13,10 +17,6 @@ app.use(cors());
 // Body parser
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
-// Routes
-const users = require('./routes/users');
-const friends = require('./routes/friends');
 
 // DB config
 const db = require('./config/db').mongoURI;
