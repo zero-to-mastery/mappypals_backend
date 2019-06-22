@@ -9,15 +9,15 @@ exports.sendEmail = async (from, email, subject, text) => {
         secure: false, // True for 465, false for other ports
         auth: {
             user: testAccount.user, // Generated ethereal user
-            pass: testAccount.pass // Generated ethereal password
-        }
+            pass: testAccount.pass, // Generated ethereal password
+        },
     });
 
     const info = await transporter.sendMail({
         from,
         to: email,
         subject,
-        text
+        text,
     });
 
     const link = nodemailer.getTestMessageUrl(info);
