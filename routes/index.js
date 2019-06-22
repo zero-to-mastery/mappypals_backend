@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
     res.send('Reached root end point here');
-}); 
+});
 
 module.exports = router;
