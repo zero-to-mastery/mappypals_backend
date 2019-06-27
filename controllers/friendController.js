@@ -1,5 +1,3 @@
-// All controls contianing friends should be placed here!
-//  Load controllers
 import emailHelper from '../utils/email';
 
 class FriendsController {

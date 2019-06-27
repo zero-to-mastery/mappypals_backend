@@ -1,4 +1,3 @@
-// All controls contianing users should be placed here!
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import asyncMod from 'async';
