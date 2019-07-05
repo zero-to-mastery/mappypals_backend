@@ -8,9 +8,6 @@ import dotenv from 'dotenv';
 import users from './routes/users';
 import friends from './routes/friends';
 
-// Controllers
-import userController from './controllers/userController';
-
 const app = express();
 dotenv.config();
 // CORS
@@ -26,15 +23,12 @@ const db = require('./config/db').mongoURI;
 mongoose
     .connect(db, { useNewUrlParser: true })
     .then(() => {
-    	console.log('MongoDB Connected')
+        console.log('MongoDB Connected');
     })
     .catch(err => console.log(err));
 
 app.use('/users', users);
 app.use('/friends', friends);
-
-// Registration - email already exists checker
-app.post('/validate-email', (req,res) => userController.validateEmail(req, res));
 
 const PORT = process.env.PORT || 3001;
 
