@@ -2,6 +2,7 @@ import express from 'express';
 import userControl from '../controllers/userController';
 
 const router = express.Router();
+// const app = express();
 
 const {
     registerUser,
@@ -10,6 +11,7 @@ const {
     validateToken,
     resetPassword,
     resetWithToken,
+    validateEmail,
 } = userControl;
 
 // Register Routes
