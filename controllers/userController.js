@@ -213,13 +213,19 @@ class UserController {
             }); */
 
                 let transporter = nodemailer.createTransport({
-                    host: 'smtp.ethereal.email',
-                    port: 587,
-                    secure: false, // true for 465, false for other ports
+                    // host: 'smtp.ethereal.email',
+                    // port: 587,
+                    // secure: false, // true for 465, false for other ports
+                    // auth: {
+                    //     user: testAccount.user, // generated ethereal user
+                    //     pass: testAccount.pass, // generated ethereal password
+                    // },
+                    host: process.env.MAIL_HOST,
+                    port: process.env.MAIL_PORT,
                     auth: {
-                        user: testAccount.user, // generated ethereal user
-                        pass: testAccount.pass, // generated ethereal password
-                    },
+                        user: process.env.MAIL_USER,
+                        pass: process.env.MAIL_PASS,
+  },
                 });
 
                 let info = await transporter.sendMail({
