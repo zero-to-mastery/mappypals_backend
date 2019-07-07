@@ -22,7 +22,9 @@ const db = require('./config/db').mongoURI;
 
 mongoose
     .connect(db, { useNewUrlParser: true })
-    .then(() => console.log('MongoDB Connected'))
+    .then(() => {
+        console.log('MongoDB Connected');
+    })
     .catch(err => console.log(err));
 
 app.use('/users', users);

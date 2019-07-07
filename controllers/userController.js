@@ -21,7 +21,7 @@ class UserController {
 
         User.findOne({ email }).then(user => {
             if (user) {
-                console.log('User already registered');
+                return res.status(401).json('This email already exists');
             } else {
                 asyncMod.waterfall([
                     done => {
@@ -39,6 +39,7 @@ class UserController {
                             password,
                             token,
                             tokenExp: Date.now() + 3600000,
+                            active: true, //remove after testing
                         });
 
                         let testAccount = await nodemailer.createTestAccount();
@@ -107,10 +108,8 @@ class UserController {
     }
     static async loginUser(req, res) {
         const { email, password } = req.body;
-
         try {
             const user = await User.findOne({ email });
-
             if (!user) {
                 return res
                     .status(401)
@@ -286,6 +285,18 @@ class UserController {
                 }
             }
         );
+    }
+    // receives email from front-end
+    // and checks if it's already in db
+    static validateEmail(req, res) {
+        const { email } = req.body;
+
+        User.findOne({ email })
+            .then(user => {
+                if (!user) res.status(200).json('Valid');
+                else res.status(401).json('Email already exists');
+            })
+            .catch(err => res.status(401).json({ error: err }));
     }
 }
 
