@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import asyncMod from 'async';
@@ -31,8 +30,8 @@ class UserController {
                             email,
                             password,
                             token,
-                            tokenExp: Date.now() + 3600000,
-                            active: true, //remove after testing
+                            tokenExp: Date.now() + 3600000
+                            active: false, //remove after testing
                         });
 
                         // let testAccount = await nodemailer.createTestAccount();
@@ -57,11 +56,10 @@ class UserController {
                             from: 'mappypals@gmail.com',
                             to: newUser.email,
                             subject: 'Confirm Registration',
-                            text:
+                            html:
                                 'You are receiving this because you(or someone else) have requested to register to Mappypals.\n\n' +
                                 'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                                'http://localhost:3000/login/' +
-                                token +
+                                `<a href="http://localhost:3000/login/${token}">"http://localhost:3000/login/${token}"</a>` +
                                 '\n\n' +
                                 'If you did not request this, please ignore this email and your account will not be created.\n',
                         });
@@ -109,8 +107,11 @@ class UserController {
     }
     static async loginUser(req, res) {
         const { email, password } = req.body;
+        console.log(typeof email);
+        console.log(typeof password);
         try {
             const user = await User.findOne({ email });
+            console.log(user);
             if (!user) {
                 return res
                     .status(401)
@@ -122,13 +123,13 @@ class UserController {
                     error: 'Please confirm your account before logging in.',
                 });
             }
-
+            console.log('1');
             const isEqual = await bcrypt.compare(password, user.password);
-
+            console.log('2');
             if (!isEqual) {
                 return res.status(401).json({ error: 'Something went wrong.' });
             }
-
+            console.log('3');
             const token = jwt.sign(
                 {
                     name: user.name,
@@ -139,8 +140,9 @@ class UserController {
                 process.env.JWT_SECRET,
                 { expiresIn: '1d' }
             );
-
-            res.status(200).json({ token, userId: user._id.toString() });
+            console.log(token);
+            console.log(user._id.toString());
+            return res.status(200).json({ token, userId: user._id.toString() });
         } catch (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -292,18 +294,6 @@ class UserController {
                 }
             }
         );
-    }
-    // receives email from front-end
-    // and checks if it's already in db
-    static validateEmail(req, res) {
-        const { email } = req.body;
-
-        User.findOne({ email })
-            .then(user => {
-                if (!user) res.status(200).json('Valid');
-                else res.status(401).json('Email already exists');
-            })
-            .catch(err => res.status(401).json({ error: err }));
     }
 }
 
