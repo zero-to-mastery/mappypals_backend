@@ -1,5 +1,5 @@
 import express from 'express';
-import userControl from '../controllers/userController';
+import userController from '../controllers/userController';
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ const {
     validateToken,
     resetPassword,
     resetWithToken,
-} = userControl;
+} = userController;
 
 // Register Routes
 router.post('/register', registerUser);

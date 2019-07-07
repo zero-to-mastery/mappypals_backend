@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import asyncMod from 'async';
@@ -7,21 +8,13 @@ import User from '../models/User';
 
 class UserController {
     static registerUser(req, res) {
-        const { name, lastname, email, password, confirmPassword } = req.body;
-
-        if (!name || !lastname || !email || !password || !confirmPassword) {
-            console.log('Error: Enter all fields');
-            return false;
-        }
-
-        if (password !== confirmPassword) {
-            console.log('Error: Passwords do not match');
-            return false;
-        }
+        const { name, lastname, email, password } = req.body;
 
         User.findOne({ email }).then(user => {
             if (user) {
-                console.log('User already registered');
+                return res.status(401).json({ 
+                    error: 'User already exists for this email account.' 
+                });
             } else {
                 asyncMod.waterfall([
                     done => {
@@ -41,15 +34,21 @@ class UserController {
                             tokenExp: Date.now() + 3600000,
                         });
 
-                        let testAccount = await nodemailer.createTestAccount();
+                        // let testAccount = await nodemailer.createTestAccount();
 
                         let transporter = await nodemailer.createTransport({
-                            host: 'smtp.ethereal.email',
-                            port: 587,
-                            secure: false, // true for 465, false for other ports
+                            // host: 'smtp.ethereal.email',
+                            // port: 587,
+                            // secure: false, // true for 465, false for other ports
+                            // auth: {
+                            //     user: testAccount.user, // generated ethereal user
+                            //     pass: testAccount.pass, // generated ethereal password
+                            // },
+                            host: process.env.MAIL_HOST,
+                            port: process.env.MAIL_PORT,
                             auth: {
-                                user: testAccount.user, // generated ethereal user
-                                pass: testAccount.pass, // generated ethereal password
+                                user: process.env.MAIL_USER,
+                                pass: process.env.MAIL_PASS,
                             },
                         });
 
@@ -77,14 +76,14 @@ class UserController {
 
                         bcrypt.genSalt(10, (err, salt) => {
                             if (err) {
-                                console.log(`Bcrypt genSalt error: ${err}`);
+                                return res.status(401).json({ Error: `Bcrypt error: ${err}` });
                             } else {
                                 bcrypt.hash(
                                     newUser.password,
                                     salt,
                                     (err, hash) => {
                                         if (err) {
-                                            console.log(`Bcrypt error: ${err}`);
+                                            return res.status(401).json({ Error: `Bcrypt error: ${err}` });
                                         } else {
                                             newUser.password = hash;
                                             newUser
@@ -94,7 +93,9 @@ class UserController {
                                                         `Successfully registered ${user}`
                                                     );
                                                 })
-                                                .catch(err => console.log(err));
+                                                .catch(err => { 
+                                                    return res.status(401).json({ Error: `Bcrypt error: ${err}` })
+                                                });
                                         }
                                     }
                                 );
@@ -198,7 +199,7 @@ class UserController {
             },
 
             async (token, user, done) => {
-                let testAccount = await nodemailer.createTestAccount();
+                // let testAccount = await nodemailer.createTestAccount();
 
                 /* let transporter = nodemailer.createTransport({
                 service: "gmail",
@@ -225,7 +226,7 @@ class UserController {
                     auth: {
                         user: process.env.MAIL_USER,
                         pass: process.env.MAIL_PASS,
-  },
+                    },
                 });
 
                 let info = await transporter.sendMail({
