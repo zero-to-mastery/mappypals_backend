@@ -30,4 +30,7 @@ router.post('/reset', resetPassword);
 // Deal with the reset token
 router.post('/resetpassword/:token', resetWithToken);
 
+// Email already exists - Error Checker End Point
+router.post('/validate-email', validateEmail);
+
 export default router;
