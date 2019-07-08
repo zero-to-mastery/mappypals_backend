@@ -8,6 +8,8 @@ import dotenv from 'dotenv';
 import users from './routes/users';
 import friends from './routes/friends';
 
+import User from './models/User';
+
 const app = express();
 dotenv.config();
 // CORS
@@ -24,6 +26,8 @@ mongoose
     .connect(db, { useNewUrlParser: true })
     .then(() => {
         console.log('MongoDB Connected');
+        // User.findOne({ email: 'danibtechnology@gmail.com'})
+        // 	.then(user => console.log(user));
     })
     .catch(err => console.log(err));
 

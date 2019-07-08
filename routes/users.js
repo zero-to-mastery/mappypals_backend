@@ -10,6 +10,7 @@ const {
     validateToken,
     resetPassword,
     resetWithToken,
+    updatePassword,
     validateEmail,
 } = userControl;
 
@@ -29,9 +30,12 @@ router.post('/login/:token', validateToken);
 router.post('/reset', resetPassword);
 
 // Deal with the reset token
-router.post('/resetpassword/:token', resetWithToken);
+router.get('/resetpassword', resetWithToken);
 
-// Email already exists - Error Checker End Point
+// Update password via email (reset password link)
+router.put('/updatePasswordViaEmail', updatePassword);
+
+// Email already exists (Sign Up form error checker)
 router.post('/validate-email', validateEmail);
 
 export default router;
