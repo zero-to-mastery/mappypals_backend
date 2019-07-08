@@ -179,13 +179,13 @@ class UserController {
 
         User.findOne({ email }).then(user => {
             if (!user) {
-                console.log('email not in database');
-                return res.status(401).json({ error: 'email not in db' });
+                return res
+                    .status(401)
+                    .json({ error: 'This email is not in database' });
             } else {
                 const token = crypto.randomBytes(20).toString('hex');
                 user.token = token;
                 user.tokenExp = Date.now() + 900000;
-                console.log('Token expires: ', user.tokenExp);
                 user.save();
                 const transporter = nodemailer.createTransport({
                     service: 'gmail',
@@ -208,135 +208,21 @@ class UserController {
                         'If you did not request this, please ignore this email and your password will remain unchanged.\n',
                 };
 
-                console.log('sending mail');
-
                 transporter.sendMail(mailOptions, function(err, response) {
                     if (err) {
                         console.error('there was an error', err);
                         return res
-                            .status(500)
-                            .json({ error: 'Internal Error 500' });
+                            .status(401)
+                            .json({
+                                error: `Couldn't send reset password link.`,
+                            });
                     } else {
-                        console.log('here is the res: ', response);
-                        return res.status(200).json('recovery email sent');
+                        return res.status(200).json('Recovery email sent.');
                     }
                 });
             }
         });
     }
-
-    // asyncMod.waterfall([
-    //     done => {
-    //         crypto.randomBytes(20, (err, code) => {
-    //             let token = code.toString('hex');
-    //             done(err, token);
-    //         });
-    //     },
-
-    //     (token, done) => {
-    //         User.findOne({ email }, function(err, user) {
-    //             if (err || !user) {
-    //                 return res.status(401).json({ error: "There are no users associated with this email. Please check your email address"})
-    //             }
-    //             user.token = token;
-    //             // 1 Hour valid
-    //             user.tokenExp = Date.now() + 3600000;
-    //             user.save(function(err) {
-    //                 done(err, token, user);
-    //             });
-    //         });
-    //     },
-
-    //     async (token, user, done) => {
-    //         let testAccount = await nodemailer.createTestAccount();
-
-    //         /* let transporter = nodemailer.createTransport({
-    //         service: "gmail",
-    //         auth: {
-    //             type: "OAuth2",
-    //             user: process.env.EMAIL_ID,
-    //             clientId: process.env.CLIENT_ID,
-    //             clientSecret: process.env.CLIENT_SECRET,
-    //             refreshToken: process.env.REFRESH_TOKEN,
-    //             accessToken: accessToken,
-    //         }
-    //     }); */
-
-    //         let transporter = nodemailer.createTransport({
-    //             host: 'smtp.ethereal.email',
-    //             port: 587,
-    //             secure: false, // true for 465, false for other ports
-    //             auth: {
-    //                 user: testAccount.user, // generated ethereal user
-    //                 pass: testAccount.pass, // generated ethereal password
-    //             },
-    //         });
-
-    //         let info = await transporter.sendMail({
-    //             from: 'mappypals@gmail.com',
-    //             to: user.email,
-    //             subject: 'Reset Password',
-    //             text:
-    //                 'You are receiving this because you(or someone else) have requested the reset of the password for your account.\n\n' +
-    //                 'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-    //                 'http://localhost:3000/resetpassword/' +
-    //                 token +
-    //                 '\n\n' +
-    //                 'If you did not request this, please ignore this email and your password will remain unchanged.\n',
-    //         });
-
-    //         console.log(
-    //             'Preview URL: %s',
-    //             nodemailer.getTestMessageUrl(info)
-    //         );
-    //         res.status(200).json({
-    //             message: 'Click on the link below',
-    //             link: nodemailer.getTestMessageUrl(info),
-    //         });
-    //     },
-    // ]);
-
-    // static resetWithToken(req, res) {
-    //     const { password, checkPassword } = req.body;
-
-    //     User.findOne(
-    //         { token: req.params.token, tokenExp: { $gt: Date.now() } },
-    //         (err, user) => {
-    //             if (err) {
-    //                 console.log(`Gen salt error: ${err}`);
-    //                 return res.status(401).json({ error: err });
-    //             }
-
-    //             if (!user) {
-    //                 res.send('Password Reset Token is invalid or expired.');
-    //             } else if (password === checkPassword) {
-    //                 bcrypt.genSalt(5, (err, salt) => {
-    //                     if (err) {
-    //                         console.log(`Gen salt error: ${err}`);
-    //                     } else {
-    //                         bcrypt.hash(password, salt, (err, hash) => {
-    //                             if (err) {
-    //                                 console.log(`Bcrypt error: ${err}`);
-    //                             } else {
-    //                                 user.password = hash;
-    //                                 user.save()
-    //                                     .then(user => {
-    //                                         console.log(
-    //                                             `Successfully updated ${user}`
-    //                                         );
-    //                                         res.status(200).json({
-    //                                             redirect: true,
-    //                                         });
-    //                                     })
-    //                                     .catch(err => console.log(err));
-    //                             }
-    //                         });
-    //                     }
-    //                 });
-    //             }
-    //         }
-    //     );
-    // }
 
     // gets user's email from database
     // when user clicks on the reset password link, which has a unique token
@@ -347,9 +233,8 @@ class UserController {
             tokenExp: { $gte: Date.now() },
         }).then(user => {
             if (!user) {
-                console.log('password reset link is invalid or has expired');
                 return res.json(
-                    'password reset link is invalid or has expired'
+                    'Password reset link is invalid or has expired'
                 );
             } else {
                 return res.status(200).send({
@@ -369,10 +254,10 @@ class UserController {
         User.findOne({ email })
             .then(user => {
                 if (!user) {
-                    console.log('no user exists in db to update');
-                    res.status(404).json('no user exists in db to update');
+                    res.status(404).json(
+                        'There is no user in the database which needs updated.'
+                    );
                 } else {
-                    console.log('user exists in db');
                     bcrypt
                         .hash(password, BCRYPT_SALT_ROUNDS)
                         .then(hashedPassword => {
@@ -383,9 +268,8 @@ class UserController {
                             });
                         })
                         .then(() => {
-                            console.log('password updated');
                             res.status(200).send({
-                                message: 'password updated',
+                                message: 'password-updated',
                             });
                         })
                         .catch(err =>
