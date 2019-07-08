@@ -30,11 +30,12 @@ class UserController {
                             email,
                             password,
                             token,
-                            tokenExp: Date.now() + 3600000
+                            tokenExp: Date.now() + 3600000,
                             active: false, //remove after testing
                         });
 
-                        // let testAccount = await nodemailer.createTestAccount();
+                        // IF USING ETHEREAL ACCT UNCOMMENT THIS LINE
+                        //let testAccount = await nodemailer.createTestAccount();
 
                         let transporter = await nodemailer.createTransport({
                             // host: 'smtp.ethereal.email',
@@ -107,11 +108,8 @@ class UserController {
     }
     static async loginUser(req, res) {
         const { email, password } = req.body;
-        console.log(typeof email);
-        console.log(typeof password);
         try {
             const user = await User.findOne({ email });
-            console.log(user);
             if (!user) {
                 return res
                     .status(401)
@@ -123,13 +121,10 @@ class UserController {
                     error: 'Please confirm your account before logging in.',
                 });
             }
-            console.log('1');
             const isEqual = await bcrypt.compare(password, user.password);
-            console.log('2');
             if (!isEqual) {
                 return res.status(401).json({ error: 'Something went wrong.' });
             }
-            console.log('3');
             const token = jwt.sign(
                 {
                     name: user.name,
@@ -200,7 +195,9 @@ class UserController {
             },
 
             async (token, user, done) => {
-                // let testAccount = await nodemailer.createTestAccount();
+             /* IF USING ETHEREAL UNCOMMENT THIS LINE
+                let testAccount = await nodemailer.createTestAccount();
+                */
 
                 /* let transporter = nodemailer.createTransport({
                 service: "gmail",
@@ -215,19 +212,20 @@ class UserController {
             }); */
 
                 let transporter = nodemailer.createTransport({
-                    // host: 'smtp.ethereal.email',
-                    // port: 587,
-                    // secure: false, // true for 465, false for other ports
-                    // auth: {
-                    //     user: testAccount.user, // generated ethereal user
-                    //     pass: testAccount.pass, // generated ethereal password
-                    // },
-                    host: process.env.MAIL_HOST,
-                    port: process.env.MAIL_PORT,
+                    host: 'smtp.ethereal.email',
+                    port: 587,
+                    secure: false, // true for 465, false for other ports
                     auth: {
-                        user: process.env.MAIL_USER,
-                        pass: process.env.MAIL_PASS,
+                        user: testAccount.user, // generated ethereal user
+                        pass: testAccount.pass, // generated ethereal password
                     },
+                //IF USING MAILTRAP UNCOMMENT
+                    // host: process.env.MAIL_HOST,
+                    // port: process.env.MAIL_PORT,
+                    // auth: {
+                    //     user: process.env.MAIL_USER,
+                    //     pass: process.env.MAIL_PASS,
+                    // },
                 });
 
                 let info = await transporter.sendMail({
