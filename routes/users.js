@@ -12,9 +12,9 @@ const {
     resetWithToken,
     validateEmail,
 } = userControl;
-const { UserValidation } = userValidate;
+const { signupValidation } = userValidate;
 // Register Routes
-router.post('/register', UserValidation, registerUser);
+router.post('/register', signupValidation, registerUser);
 
 // Login Routes
 router.post('/login', loginUser);
