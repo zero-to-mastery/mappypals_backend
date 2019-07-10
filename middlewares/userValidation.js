@@ -12,8 +12,6 @@ class UserValidation {
             .notEmpty()
             .withMessage('First name is required')
             .trim()
-            .isLength({ min: 3, max: 15 })
-            .withMessage('Name should be between 3 to 15 character long')
             .isAlpha()
             .withMessage('Name should only contain alphabets');
 
@@ -21,8 +19,6 @@ class UserValidation {
             .notEmpty()
             .withMessage('last name is required')
             .trim()
-            .isLength({ min: 3, max: 15 })
-            .withMessage('Name should be between 3 to 15 character long')
             .isAlpha()
             .withMessage('Name should only contain alphabets');
 
@@ -30,8 +26,14 @@ class UserValidation {
             .notEmpty()
             .withMessage('Password is required')
             .trim()
-            .isLength({ min: 8, max: 15 })
-            .withMessage('Password should be between 8 to 15 character long');
+            .matches('[0-9]')
+            .matches('[a-z]')
+            .matches('[A-Z]')
+            .withMessage(
+                'Password should contain atleast 1 number and have upper and lowercase characters'
+            )
+            .isLength({ min: 6 })
+            .withMessage('Password should be at least 6 character');
 
         const error = req.validationErrors();
         if (error) {
