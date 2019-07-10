@@ -8,6 +8,8 @@ import dotenv from 'dotenv';
 import users from './routes/users';
 import friends from './routes/friends';
 
+import User from './models/User';
+
 const app = express();
 dotenv.config();
 // CORS
