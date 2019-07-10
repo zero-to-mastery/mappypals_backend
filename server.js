@@ -26,8 +26,6 @@ mongoose
     .connect(db, { useNewUrlParser: true })
     .then(() => {
         console.log('MongoDB Connected');
-        // User.findOne({ email: 'danibtechnology@gmail.com'})
-        // 	.then(user => console.log(user));
     })
     .catch(err => console.log(err));
 

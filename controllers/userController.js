@@ -211,11 +211,9 @@ class UserController {
                 transporter.sendMail(mailOptions, function(err, response) {
                     if (err) {
                         console.error('there was an error', err);
-                        return res
-                            .status(401)
-                            .json({
-                                error: `Couldn't send reset password link.`,
-                            });
+                        return res.status(401).json({
+                            error: `Couldn't send reset password link.`,
+                        });
                     } else {
                         return res.status(200).json('Recovery email sent.');
                     }
@@ -224,10 +222,8 @@ class UserController {
         });
     }
 
-    // gets user's email from database
-    // when user clicks on the reset password link, which has a unique token
+    // gets user's email from database when user clicks on the reset password link
     static resetWithToken(req, res, next) {
-        console.log(req.query.resetPasswordToken);
         User.findOne({
             token: req.query.resetPasswordToken,
             tokenExp: { $gte: Date.now() },
