@@ -31,11 +31,11 @@ class UserController {
                             password,
                             token,
                             tokenExp: Date.now() + 3600000,
-                            active: false, //remove after testing
+                            active: false, // remove after testing
                         });
 
                         // IF USING ETHEREAL ACCT UNCOMMENT THIS LINE
-                        //let testAccount = await nodemailer.createTestAccount();
+                        // let testAccount = await nodemailer.createTestAccount();
 
                         let transporter = await nodemailer.createTransport({
                             // host: 'smtp.ethereal.email',
@@ -94,7 +94,7 @@ class UserController {
                                                     );
                                                 })
                                                 .catch(err => { 
-                                                    return res.status(401).json({ Error: `Bcrypt error: ${err}` })
+                                                    return res.status(401).json({ Error: `Bcrypt error: ${err}` });
                                                 });
                                         }
                                     }
@@ -135,8 +135,6 @@ class UserController {
                 process.env.JWT_SECRET,
                 { expiresIn: '1d' }
             );
-            console.log(token);
-            console.log(user._id.toString());
             return res.status(200).json({ token, userId: user._id.toString() });
         } catch (err) {
             return res.status(500).json({ error: err.message });
@@ -195,7 +193,7 @@ class UserController {
             },
 
             async (token, user, done) => {
-             /* IF USING ETHEREAL UNCOMMENT THIS LINE
+                /* IF USING ETHEREAL UNCOMMENT THIS LINE
                 let testAccount = await nodemailer.createTestAccount();
                 */
 
@@ -212,24 +210,25 @@ class UserController {
             }); */
 
                 let transporter = nodemailer.createTransport({
-                    host: 'smtp.ethereal.email',
-                    port: 587,
-                    secure: false, // true for 465, false for other ports
+                //     host: 'smtp.ethereal.email',
+                //     port: 587,
+                //     secure: false, // true for 465, false for other ports
+                //     auth: {
+                //         user: testAccount.user, // generated ethereal user
+                //         pass: testAccount.pass, // generated ethereal password
+                //     },
+                
+                    // IF USING MAILTRAP UNCOMMENT
+                    host: process.env.MAIL_HOST,
+                    port: process.env.MAIL_PORT,
                     auth: {
-                        user: testAccount.user, // generated ethereal user
-                        pass: testAccount.pass, // generated ethereal password
+                        user: process.env.MAIL_USER,
+                        pass: process.env.MAIL_PASS,
                     },
-                //IF USING MAILTRAP UNCOMMENT
-                    // host: process.env.MAIL_HOST,
-                    // port: process.env.MAIL_PORT,
-                    // auth: {
-                    //     user: process.env.MAIL_USER,
-                    //     pass: process.env.MAIL_PASS,
-                    // },
                 });
 
                 let info = await transporter.sendMail({
-                    from: 'mappypals@gmail.com',
+                    from: process.env.GMAIL_USER,
                     to: user.email,
                     subject: 'Reset Password',
                     text:
@@ -292,6 +291,41 @@ class UserController {
                 }
             }
         );
+    }
+    static contactFormMsg (req, res) {
+        let mailOpts, smtpTrans;
+        try
+        {
+            smtpTrans = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true, // use SSL
+                auth: {
+                    user: process.env.GMAIL_USER,
+                    pass: process.env.GMAIL_PASS
+                },
+                tls: {
+                    rejectUnauthorized: false //If don't have gmail_pass
+                }
+            });
+            mailOpts = {
+                from: req.body.firstname + ' &lt;' + req.body.email + '&gt;',
+                to: process.env.GMAIL_USER,
+                subject: req.body.subject + 'Message from Contact Form',
+                text: `${req.body.firstname} (${req.body.email}) says: ${req.body.message}`
+            };
+            return smtpTrans.sendMail(mailOpts, function (err, res) {
+                console.log(err);
+                console.log(res);
+                if (err) {
+                    return err;
+                }
+                else {
+                    return `Success: ${res.message}`;
+                } 
+            });
+        } catch {
+            return res.status(500).json({ err: 'Unknown error. Please resend' });
     }
 }
 

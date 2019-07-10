@@ -10,6 +10,7 @@ const {
     validateToken,
     resetPassword,
     resetWithToken,
+    contactFormMsg,
 } = userController;
 
 // Register Routes
@@ -29,5 +30,8 @@ router.post('/reset', resetPassword);
 
 // Deal with the reset token
 router.post('/resetpassword/:token', resetWithToken);
+
+// Contact Form message
+router.post('/contact', contactFormMsg);
 
 export default router;
