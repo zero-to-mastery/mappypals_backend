@@ -1,6 +1,6 @@
 import express from 'express';
 import userControl from '../controllers/userController';
-
+import userValidate from '../middlewares/userValidation';
 const router = express.Router();
 
 const {
@@ -13,9 +13,9 @@ const {
     updatePassword,
     validateEmail,
 } = userControl;
-
+const { signupValidation } = userValidate;
 // Register Routes
-router.post('/register', registerUser);
+router.post('/register', signupValidation, registerUser);
 
 // Login Routes
 router.post('/login', loginUser);

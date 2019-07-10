@@ -39,7 +39,7 @@ class UserController {
                             password,
                             token,
                             tokenExp: Date.now() + 3600000,
-                            active: true, //remove after testing
+                            active: true, // remove after testing
                         });
 
                         let testAccount = await nodemailer.createTestAccount();
