@@ -12,6 +12,7 @@ const {
     resetWithToken,
     updatePassword,
     validateEmail,
+    contactFormMsg,
 } = userControl;
 const { signupValidation } = userValidate;
 // Register Routes
@@ -37,5 +38,8 @@ router.put('/updatePasswordViaEmail', updatePassword);
 
 // Email already exists (Sign Up form error checker)
 router.post('/validate-email', validateEmail);
+
+// Contact Form message
+router.post('/contact', contactFormMsg);
 
 export default router;

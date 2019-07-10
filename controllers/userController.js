@@ -290,6 +290,43 @@ class UserController {
             })
             .catch(err => res.status(401).json({ error: err }));
     }
+
+    static contactFormMsg (req, res) {
+        let mailOpts, smtpTrans;
+        try
+        {
+            smtpTrans = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true, // use SSL
+                auth: {
+                    user: process.env.GMAIL_USER,
+                    pass: process.env.GMAIL_PASS
+                },
+                tls: {
+                    rejectUnauthorized: false //Only for dev mode
+                }
+            });
+            mailOpts = {
+                from: req.body.firstname + ' &lt;' + req.body.email + '&gt;',
+                to: process.env.GMAIL_USER,
+                subject: req.body.subject + 'Message from Contact Form',
+                text: `${req.body.firstname} (${req.body.email}) says: ${req.body.message}`
+            };
+            return smtpTrans.sendMail(mailOpts, function (err, res) {
+                console.log(err);
+                console.log(res);
+                if (err) {
+                    return err;
+                }
+                else {
+                    return `Success: ${res.message}`;
+                } 
+            });
+        } catch {
+            return res.status(500).json({ err: 'Unknown error. Please resend' });
+        }
+    }
 }
 
 export default UserController;
