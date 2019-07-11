@@ -1,6 +1,6 @@
 import express from 'express';
-import userController from '../controllers/userController';
-
+import userControl from '../controllers/userController';
+import userValidate from '../middlewares/userValidation';
 const router = express.Router();
 
 const {
@@ -10,10 +10,12 @@ const {
     validateToken,
     resetPassword,
     resetWithToken,
-} = userController;
-
+    updatePassword,
+    validateEmail,
+} = userControl;
+const { signupValidation } = userValidate;
 // Register Routes
-router.post('/register', registerUser);
+router.post('/register', signupValidation, registerUser);
 
 // Login Routes
 router.post('/login', loginUser);
@@ -28,9 +30,12 @@ router.post('/login/:token', validateToken);
 router.post('/reset', resetPassword);
 
 // Deal with the reset token
-router.post('/resetpassword/:token', resetWithToken);
+router.get('/resetpassword', resetWithToken);
 
-// Email already exists - Error Checker End Point
+// Update password via email (reset password link)
+router.put('/updatePasswordViaEmail', updatePassword);
+
+// Email already exists (Sign Up form error checker)
 router.post('/validate-email', validateEmail);
 
 export default router;
