@@ -307,23 +307,35 @@ class UserController {
                     rejectUnauthorized: false //Only for dev mode
                 }
             });
+        } catch {
+            return res.status(500).json({ err: 'Unknown gmail error. Please resend' });
+        }   
             mailOpts = {
-                from: req.body.firstname + ' &lt;' + req.body.email + '&gt;',
+                from: req.body.name + ' &lt;' + req.body.email + '&gt;',
                 to: process.env.GMAIL_USER,
                 subject: req.body.subject + 'Message from Contact Form',
-                text: `${req.body.firstname} (${req.body.email}) says: ${req.body.message}`
+                text: `${req.body.name} (${req.body.email}) says: ${req.body.message}`
             };
-            return smtpTrans.sendMail(mailOpts, function (err, res) {
-                console.log(err);
-                console.log(res);
+        try
+        { 
+            smtpTrans.sendMail(mailOpts, function (err, resp) {
+                //gmail errors have to be converted to json to be returned to ky/frontend
+                let str = ''; 
                 if (err) {
-                    return err;
-                }
-                else {
-                    return `Success: ${res.message}`;
+                    str = String(err)
+                    str = str.replace(/"/g, "'"); //replace " with '
+                    str = str.replace("Error: ", ""); //after this, re-add error with quotes
+                    var json = `{"Error" : "${str}"}`;
+                    return res.status(401).json(json);
+                } else {
+                    str = String(resp.message)
+                    str = str.replace(/"/g, "'");
+                    var json = `{"Success" : "${str}"}`;
+                    return json;
                 } 
             });
-        } catch {
+        }
+        catch {
             return res.status(500).json({ err: 'Unknown error. Please resend' });
         }
     }
