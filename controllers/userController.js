@@ -34,22 +34,15 @@ class UserController {
                             active: false, // remove after testing
                         });
 
-                        // IF USING ETHEREAL ACCT UNCOMMENT THIS LINE
-                        // let testAccount = await nodemailer.createTestAccount();
+                        let testAccount = await nodemailer.createTestAccount();
 
                         let transporter = await nodemailer.createTransport({
-                            // host: 'smtp.ethereal.email',
-                            // port: 587,
-                            // secure: false, // true for 465, false for other ports
-                            // auth: {
-                            //     user: testAccount.user, // generated ethereal user
-                            //     pass: testAccount.pass, // generated ethereal password
-                            // },
-                            host: process.env.MAIL_HOST,
-                            port: process.env.MAIL_PORT,
+                            host: 'smtp.ethereal.email',
+                            port: 587,
+                            secure: false, // true for 465, false for other ports
                             auth: {
-                                user: process.env.MAIL_USER,
-                                pass: process.env.MAIL_PASS,
+                                user: testAccount.user, // generated ethereal user
+                                pass: testAccount.pass, // generated ethereal password
                             },
                         });
 
