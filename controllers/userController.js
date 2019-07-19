@@ -7,21 +7,13 @@ import User from '../models/User';
 
 class UserController {
     static registerUser(req, res) {
-        const { name, lastname, email, password, confirmPassword } = req.body;
-
-        if (!name || !lastname || !email || !password || !confirmPassword) {
-            console.log('Error: Enter all fields');
-            return false;
-        }
-
-        if (password !== confirmPassword) {
-            console.log('Error: Passwords do not match');
-            return false;
-        }
+        const { name, lastname, email, password } = req.body;
 
         User.findOne({ email }).then(user => {
             if (user) {
-                return res.status(401).json('This email already exists');
+                return res.status(401).json({ 
+                    error: 'User already exists for this email account.' 
+                });
             } else {
                 asyncMod.waterfall([
                     done => {
@@ -39,7 +31,7 @@ class UserController {
                             password,
                             token,
                             tokenExp: Date.now() + 3600000,
-                            active: true, // remove after testing
+                            active: false, // remove after testing
                         });
 
                         let testAccount = await nodemailer.createTestAccount();
@@ -58,11 +50,10 @@ class UserController {
                             from: 'mappypals@gmail.com',
                             to: newUser.email,
                             subject: 'Confirm Registration',
-                            text:
+                            html:
                                 'You are receiving this because you(or someone else) have requested to register to Mappypals.\n\n' +
                                 'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                                'http://localhost:3000/login/' +
-                                token +
+                                `<a href="http://localhost:3000/login/${token}">"http://localhost:3000/login/${token}"</a>` +
                                 '\n\n' +
                                 'If you did not request this, please ignore this email and your account will not be created.\n',
                         });
@@ -78,14 +69,14 @@ class UserController {
 
                         bcrypt.genSalt(10, (err, salt) => {
                             if (err) {
-                                console.log(`Bcrypt genSalt error: ${err}`);
+                                return res.status(401).json({ Error: `Bcrypt error: ${err}` });
                             } else {
                                 bcrypt.hash(
                                     newUser.password,
                                     salt,
                                     (err, hash) => {
                                         if (err) {
-                                            console.log(`Bcrypt error: ${err}`);
+                                            return res.status(401).json({ Error: `Bcrypt error: ${err}` });
                                         } else {
                                             newUser.password = hash;
                                             newUser
@@ -95,7 +86,9 @@ class UserController {
                                                         `Successfully registered ${user}`
                                                     );
                                                 })
-                                                .catch(err => console.log(err));
+                                                .catch(err => { 
+                                                    return res.status(401).json({ Error: `Bcrypt error: ${err}` });
+                                                });
                                         }
                                     }
                                 );
@@ -121,13 +114,10 @@ class UserController {
                     error: 'Please confirm your account before logging in.',
                 });
             }
-
             const isEqual = await bcrypt.compare(password, user.password);
-
             if (!isEqual) {
                 return res.status(401).json({ error: 'Something went wrong.' });
             }
-
             const token = jwt.sign(
                 {
                     name: user.name,
@@ -138,8 +128,7 @@ class UserController {
                 process.env.JWT_SECRET,
                 { expiresIn: '1d' }
             );
-
-            res.status(200).json({ token, userId: user._id.toString() });
+            return res.status(200).json({ token, userId: user._id.toString() });
         } catch (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -293,6 +282,55 @@ class UserController {
                 else res.status(401).json('Email already exists');
             })
             .catch(err => res.status(401).json({ error: err }));
+    }
+
+    static contactFormMsg (req, res) {
+        let mailOpts, smtpTrans;
+        try
+        {
+            smtpTrans = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true, // use SSL
+                auth: {
+                    user: process.env.GMAIL_USER,
+                    pass: process.env.GMAIL_PASS
+                },
+                tls: {
+                    rejectUnauthorized: false //Only for dev mode
+                }
+            });
+        } catch {
+            return res.status(500).json({ err: 'Unknown gmail error. Please resend' });
+        }   
+            mailOpts = {
+                from: req.body.name + ' &lt;' + req.body.email + '&gt;',
+                to: process.env.GMAIL_USER,
+                subject: req.body.subject + 'Message from Contact Form',
+                text: `${req.body.name} (${req.body.email}) says: ${req.body.message}`
+            };
+        try
+        { 
+            smtpTrans.sendMail(mailOpts, function (err, resp) {
+                //gmail errors have to be converted to json to be returned to ky/frontend
+                let str = ''; 
+                if (err) {
+                    str = String(err)
+                    str = str.replace(/"/g, "'"); //replace " with '
+                    str = str.replace("Error: ", ""); //after this, re-add error with quotes
+                    var json = `{"Error" : "${str}"}`;
+                    return res.status(401).json(json);
+                } else {
+                    str = String(resp.message)
+                    str = str.replace(/"/g, "'");
+                    var json = `{"Success" : "${str}"}`;
+                    return json;
+                } 
+            });
+        }
+        catch {
+            return res.status(500).json({ err: 'Unknown error. Please resend' });
+        }
     }
 }
 
