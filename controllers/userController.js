@@ -289,42 +289,37 @@ class UserController {
         try
         {
             smtpTrans = nodemailer.createTransport({
-                host: 'smtp.gmail.com',
-                port: 465,
-                secure: true, // use SSL
+                service: 'gmail',
                 auth: {
-                    user: process.env.GMAIL_USER,
-                    pass: process.env.GMAIL_PASS
+                    user: process.env.EMAIL_ADDRESS,
+                    pass: process.env.EMAIL_PASSWORD,
                 },
-                tls: {
-                    rejectUnauthorized: false //Only for dev mode
-                }
             });
         } catch {
             return res.status(500).json({ err: 'Unknown gmail error. Please resend' });
         }   
             mailOpts = {
                 from: req.body.name + ' &lt;' + req.body.email + '&gt;',
-                to: process.env.GMAIL_USER,
+                to: process.env.EMAIL_ADDRESS,
                 subject: req.body.subject + 'Message from Contact Form',
                 text: `${req.body.name} (${req.body.email}) says: ${req.body.message}`
             };
         try
         { 
             smtpTrans.sendMail(mailOpts, function (err, resp) {
-                //gmail errors have to be converted to json to be returned to ky/frontend
+                //gmail errors have unjsonfriendly "" to be returned to ky/frontend
                 let str = ''; 
+                console.log(err);
                 if (err) {
                     str = String(err)
                     str = str.replace(/"/g, "'"); //replace " with '
-                    str = str.replace("Error: ", ""); //after this, re-add error with quotes
-                    var json = `{"Error" : "${str}"}`;
-                    return res.status(401).json(json);
+                    res.statusMessage = `${str}`;
+                    return res.status(401).json();
                 } else {
                     str = String(resp.message)
                     str = str.replace(/"/g, "'");
-                    var json = `{"Success" : "${str}"}`;
-                    return json;
+                    res.statusMessage = `Success: "${str}"`;
+                    return res.status(200).json();
                 } 
             });
         }
