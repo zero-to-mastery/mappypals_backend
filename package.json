@@ -1,7 +1,7 @@
 {
     "name": "mappypals",
     "version": "1.0.0",
-    "description": "track your friend abroad",
+    "description": "track your friends abroad",
     "main": "server.js",
     "scripts": {
         "clean": "rm -rf build && mkdir build",
