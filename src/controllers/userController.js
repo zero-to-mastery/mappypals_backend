@@ -11,8 +11,8 @@ class UserController {
 
         User.findOne({ email }).then(user => {
             if (user) {
-                return res.status(401).json({ 
-                    error: 'User already exists for this email account.' 
+                return res.status(401).json({
+                    error: 'User already exists for this email account.',
                 });
             } else {
                 asyncMod.waterfall([
@@ -53,7 +53,10 @@ class UserController {
                             html:
                                 'You are receiving this because you(or someone else) have requested to register to Mappypals.\n\n' +
                                 'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                                `<a href="http://localhost:3000/login/${token}">"http://localhost:3000/login/${token}"</a>` +
+                                `<a href="${process.env.FRONT_END_URL ||
+                                    'http://localhost:3000'}/login/${token}>${process
+                                    .env.FRONT_END_URL ||
+                                    'http://localhost:3000'}/login/${token}</a>` +
                                 '\n\n' +
                                 'If you did not request this, please ignore this email and your account will not be created.\n',
                         });
@@ -69,14 +72,18 @@ class UserController {
 
                         bcrypt.genSalt(10, (err, salt) => {
                             if (err) {
-                                return res.status(401).json({ Error: `Bcrypt error: ${err}` });
+                                return res
+                                    .status(401)
+                                    .json({ Error: `Bcrypt error: ${err}` });
                             } else {
                                 bcrypt.hash(
                                     newUser.password,
                                     salt,
                                     (err, hash) => {
                                         if (err) {
-                                            return res.status(401).json({ Error: `Bcrypt error: ${err}` });
+                                            return res.status(401).json({
+                                                Error: `Bcrypt error: ${err}`,
+                                            });
                                         } else {
                                             newUser.password = hash;
                                             newUser
@@ -86,8 +93,12 @@ class UserController {
                                                         `Successfully registered ${user}`
                                                     );
                                                 })
-                                                .catch(err => { 
-                                                    return res.status(401).json({ Error: `Bcrypt error: ${err}` });
+                                                .catch(err => {
+                                                    return res
+                                                        .status(401)
+                                                        .json({
+                                                            Error: `Bcrypt error: ${err}`,
+                                                        });
                                                 });
                                         }
                                     }
@@ -191,7 +202,8 @@ class UserController {
                     text:
                         'You are receiving this because you(or someone else) have requested the reset of the password for your account.\n\n' +
                         'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-                        'http://localhost:3000/resetpassword/' +
+                        `${process.env.FRONT_END_URL ||
+                            'http://localhost:3000'}/resetpassword/` +
                         token +
                         '\n\n' +
                         'If you did not request this, please ignore this email and your password will remain unchanged.\n',
@@ -284,10 +296,9 @@ class UserController {
             .catch(err => res.status(401).json({ error: err }));
     }
 
-    static contactFormMsg (req, res) {
+    static contactFormMsg(req, res) {
         let mailOpts, smtpTrans;
-        try
-        {
+        try {
             smtpTrans = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
@@ -296,35 +307,39 @@ class UserController {
                 },
             });
         } catch {
-            return res.status(500).json({ err: 'Unknown gmail error. Please resend' });
-        }   
-            mailOpts = {
-                from: req.body.name + ' &lt;' + req.body.email + '&gt;',
-                to: process.env.EMAIL_ADDRESS,
-                subject: req.body.subject + 'Message from Contact Form',
-                text: `${req.body.name} (${req.body.email}) says: ${req.body.message}`
-            };
-        try
-        { 
-            smtpTrans.sendMail(mailOpts, function (err, resp) {
+            return res
+                .status(500)
+                .json({ err: 'Unknown gmail error. Please resend' });
+        }
+        mailOpts = {
+            from: req.body.name + ' &lt;' + req.body.email + '&gt;',
+            to: process.env.EMAIL_ADDRESS,
+            subject: req.body.subject + 'Message from Contact Form',
+            text: `${req.body.name} (${req.body.email}) says: ${
+                req.body.message
+            }`,
+        };
+        try {
+            smtpTrans.sendMail(mailOpts, function(err, resp) {
                 //gmail errors have unjsonfriendly "" to be returned to ky/frontend
-                let str = ''; 
+                let str = '';
                 console.log(err);
                 if (err) {
-                    str = String(err)
+                    str = String(err);
                     str = str.replace(/"/g, "'"); //replace " with '
                     res.statusMessage = `${str}`;
                     return res.status(401).json();
                 } else {
-                    str = String(resp.message)
+                    str = String(resp.message);
                     str = str.replace(/"/g, "'");
                     res.statusMessage = `Success: "${str}"`;
                     return res.status(200).json();
-                } 
+                }
             });
-        }
-        catch {
-            return res.status(500).json({ err: 'Unknown error. Please resend' });
+        } catch {
+            return res
+                .status(500)
+                .json({ err: 'Unknown error. Please resend' });
         }
     }
 }
