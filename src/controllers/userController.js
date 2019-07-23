@@ -193,6 +193,9 @@ class UserController {
                         user: process.env.EMAIL_ADDRESS,
                         pass: process.env.EMAIL_PASSWORD,
                     },
+                    tls: {
+                        rejectUnauthorized: false
+                    }
                 });
 
                 const mailOptions = {
@@ -305,6 +308,9 @@ class UserController {
                     user: process.env.EMAIL_ADDRESS,
                     pass: process.env.EMAIL_PASSWORD,
                 },
+                tls: {
+                    rejectUnauthorized: false
+                }
             });
         } catch {
             return res
