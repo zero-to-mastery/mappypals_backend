@@ -323,16 +323,12 @@ class UserController {
             smtpTrans.sendMail(mailOpts, function(err, resp) {
                 //gmail errors have unjsonfriendly "" to be returned to ky/frontend
                 let str = '';
-                console.log(err);
                 if (err) {
                     str = String(err);
                     str = str.replace(/"/g, "'"); //replace " with '
                     res.statusMessage = `${str}`;
                     return res.status(401).json();
                 } else {
-                    str = String(resp.message);
-                    str = str.replace(/"/g, "'");
-                    res.statusMessage = `Success: "${str}"`;
                     return res.status(200).json();
                 }
             });
