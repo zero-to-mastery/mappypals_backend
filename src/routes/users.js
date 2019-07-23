@@ -14,9 +14,13 @@ const {
     validateEmail,
     contactFormMsg,
 } = userControl;
-const { signupValidation } = userValidate;
+/*userValidate functions duplicate some of the automatic html input checking
+It needs to be 1) streamlined and 2) either placed in userController because router.post
+seems to reject 2 items prointing to /register - and it prevents registerUser from running
+const { signupValidation } = userValidate;*/
+
 // Register Routes
-router.post('/register', signupValidation, registerUser);
+router.post('/register', registerUser);
 
 // Login Routes
 router.post('/login', loginUser);
