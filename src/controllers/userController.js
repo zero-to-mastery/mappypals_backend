@@ -9,7 +9,7 @@ class UserController {
     static registerUser(req, res) {
         const { name, lastname, email, password } = req.body;
 
-        User.findOne({ email }).then(user => {
+        User.findOne({ email: email }).then(user => {
             if (user) {
                 return res.status(401).json({
                     error: 'User already exists for this email account.',
@@ -115,23 +115,26 @@ class UserController {
     }
     static async loginUser(req, res) {
         const { email, password } = req.body;
-        try {
-            const user = await User.findOne({ email });
-            if (!user) {
-                return res
-                    .status(401)
-                    .json({ error: 'Something went wrong.', user });
-            }
 
+        User.findOne({ email: email }).then((user,err) => {
+            if (!user) {
+                res.statusMessage = `Email ${email} not found.`;
+                return res.status(401).json();
+            }
             if (!user.active) {
-                return res.status(401).json({
-                    error: 'Please confirm your account before logging in.',
-                });
+                res.statusMessage = 'Account not active. Did you use our emailed link?';
+                return res.status(401).json();
             }
-            const isEqual = await bcrypt.compare(password, user.password);
-            if (!isEqual) {
-                return res.status(401).json({ error: 'Something went wrong.' });
+            if (err) {
+                res.statusMessage = err.message;
+                return res.status(500).json();
             }
+            bcrypt.compare(password, user.password, function(err, res) {
+                if (!res) {
+                    res.statusMessage = 'Something went wrong with that email/password combination.';
+                    return res.status(401).json();
+                }
+            });
             const token = jwt.sign(
                 {
                     name: user.name,
@@ -143,10 +146,12 @@ class UserController {
                 { expiresIn: '1d' }
             );
             return res.status(200).json({ token, userId: user._id.toString() });
-        } catch (err) {
-            return res.status(500).json({ error: err.message });
-        }
+        }).catch(err => {
+            res.statusMessage = err.message;
+            return res.status(500).json();
+        }); 
     }
+
     static confirmAccount(req, res) {
         User.findOne(
             { token: req.params.token, tokenExp: { $gt: Date.now() } },

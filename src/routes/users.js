@@ -1,6 +1,6 @@
 import express from 'express';
 import userControl from '../controllers/userController';
-import userValidate from '../middlewares/userValidation';
+//import userValidate from '../middlewares/userValidation';
 const router = express.Router();
 
 const {
@@ -16,7 +16,7 @@ const {
 } = userControl;
 /*userValidate functions duplicate some of the automatic html input checking
 It needs to be 1) streamlined and 2) either placed in userController because router.post
-seems to reject 2 items prointing to /register - and it prevents registerUser from running
+seems to reject 2 items pointing to /register - and it prevents registerUser from running
 const { signupValidation } = userValidate;*/
 
 // Register Routes
