@@ -122,15 +122,15 @@ class UserController {
                 return res.status(401).json();
             }
             if (!user.active) {
-                res.statusMessage = 'Account not active. Did you use our emailed link?';
+                res.statusMessage = `Account not active. Did you use our emailed link?`;
                 return res.status(401).json();
             }
             if (err) {
                 res.statusMessage = err.message;
                 return res.status(500).json();
             }
-            bcrypt.compare(password, user.password, function(err, res) {
-                if (!res) {
+            bcrypt.compare(password, user.password, function(err, resp) {
+                if (err) {
                     res.statusMessage = 'Something went wrong with that email/password combination.';
                     return res.status(401).json();
                 }
