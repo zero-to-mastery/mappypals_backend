@@ -117,6 +117,7 @@ class UserController {
         const { email, password } = req.body;
 
         User.findOne({ email: email }).then((user,err) => {
+            console.log('findone begin');
             if (!user) {
                 res.statusMessage = `Email ${email} not found.`;
                 return res.status(401).json();
@@ -129,12 +130,14 @@ class UserController {
                 res.statusMessage = err.message;
                 return res.status(500).json();
             }
+            console.log('bcrypt begin');
             bcrypt.compare(password, user.password, function(err, resp) {
                 if (err) {
                     res.statusMessage = 'Something went wrong with that email/password combination.';
                     return res.status(401).json();
                 }
             });
+            console.log('jwt begin');
             const token = jwt.sign(
                 {
                     name: user.name,
@@ -145,11 +148,10 @@ class UserController {
                 process.env.JWT_SECRET,
                 { expiresIn: '1d' }
             );
-            return res.status(200).json({ token, userId: user._id.toString() });
-        }).catch(err => {
-            res.statusMessage = err.message;
-            return res.status(500).json();
-        }); 
+            console.log('jwt end');
+            console.log(token); console.log(user._id.toString());
+            return res.status(200).json({ token, userId: user._id.toString() }).json();
+        });
     }
 
     static confirmAccount(req, res) {
