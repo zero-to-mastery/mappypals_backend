@@ -145,11 +145,10 @@ class UserController {
                 process.env.JWT_SECRET,
                 { expiresIn: '1d' }
             );
-            return res.status(200).json({ token, userId: user._id.toString() });
-        }).catch(err => {
-            res.statusMessage = err.message;
-            return res.status(500).json();
-        }); 
+            var newVal1 = token.toString();
+            var newVal2 = user._id.toString();
+            return res.status(200).json({token: newVal1, userId: newVal2});
+        });
     }
 
     static confirmAccount(req, res) {
